@@ -17,7 +17,7 @@ const bcryptSalt = bcrypt.genSaltSync(10)
 app.use(cors({
     credentials: true,
     origin: process.env.CLIENT_URL
-}))
+}))  
 
 
 const jwtkey = process.env.JWT_KEY;
@@ -27,17 +27,24 @@ app.options('/signup', cors());
 app.get('/test', (req,res)=> {
     res.send('test ok');
 });
-app.get('./login', async (res,req) => {
+app.post('/login', async (req,res) => {
+  console.log('login called')
   const {username, password} =  req.body;
   const founduser = await user.findOne({username})
   if (founduser){
+    console.log('userfoudn')
     const validated = bcrypt.compareSync(password, founduser.password)
     if (validated){
-      jwt.sign({userId:founduser, id, username}, jwtkey,{}, (err,token) => {
-        res.cookie('token', token).json({
-          id: founduser._id
+      jwt.sign( {userId: founduser._id, user:username},jwtkey ,{},
+        (error,token)=> { 
+          if (error){
+            throw error;
+          }
+          res.cookie('token', token,{sameSite:'none', secure:true},).status(201).json({
+            id: founduser._id,
+            user: username
+          });
         })
-      })
     }
   }
 })
@@ -58,6 +65,7 @@ app.get('/profile', (req,res) => {
 
 })
 app.post('/signup', async(req,res) => {
+    console.log('signupcalled')
     const {username,password} = req.body;
     try {
     const encryptedpass = bcrypt.hashSync(password)
@@ -65,7 +73,7 @@ app.post('/signup', async(req,res) => {
     console.log(newuser._id)
     console.log(jwtkey)
     jwt.sign( {userId: newuser._id, user:username},jwtkey ,{},
-      (error,token)=> {
+      (error,token)=> { 
         if (error){
           throw error;
         }
