@@ -6,6 +6,7 @@ const cors = require('cors')
 const user = require('./api_models/User');
 const cookieparser = require('cookie-parser')
 const bcrypt = require('bcryptjs')
+const ws = require('ws')
 
 
 dotenv.config() 
@@ -89,6 +90,43 @@ app.post('/signup', async(req,res) => {
   });
 
 
-app.listen(4040, ()=> {
+const server = app.listen(4040, ()=> {
 console.log('server started at port 4040')
 console.log(process.env.CLIENT_URL)});
+
+const  wss = new  ws.WebSocketServer({server})
+wss.on('connection', (connection, req) => {
+  const cookies = req.headers.cookie;
+  if (cookies) {
+   
+    const tokencookie = cookies.split(';').find((str)=> str.startsWith('token='))
+    if (tokencookie) {
+     
+      const token = tokencookie.split('=')[1];
+      if (token) {
+        jwt.verify(token, jwtkey, {}, (err, data) => {
+          if (err) {
+            console.log('no') 
+            throw err
+          }
+          const {userId, user} = data;
+          connection.userId =  userId;
+          connection.user = user;
+        })
+      }
+    }
+   
+   
+  }
+ [...wss.clients].forEach(client => {
+  client.send(JSON.stringify( {online : [...wss.clients].map((client)=>{
+    return (
+      {
+        userId: client.userId,
+        user: client.user
+      }
+    )
+  })}))
+ })
+  
+})
