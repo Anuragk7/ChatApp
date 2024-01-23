@@ -17,7 +17,7 @@ app.use(cookieparser());
 const bcryptSalt = bcrypt.genSaltSync(10)
 app.use(cors({
     credentials: true,
-    origin: process.env.CLIENT_URL
+    origin:  process.env.CLIENT_URL
 }))  
 
 
@@ -71,8 +71,7 @@ app.post('/signup', async(req,res) => {
     try {
     const encryptedpass = bcrypt.hashSync(password)
     const newuser = await user.create({username:username,password:encryptedpass})
-    console.log(newuser._id)
-    console.log(jwtkey)
+
     jwt.sign( {userId: newuser._id, user:username},jwtkey ,{},
       (error,token)=> { 
         if (error){
@@ -95,38 +94,42 @@ console.log('server started at port 4040')
 console.log(process.env.CLIENT_URL)});
 
 const  wss = new  ws.WebSocketServer({server})
+
 wss.on('connection', (connection, req) => {
-  const cookies = req.headers.cookie;
-  if (cookies) {
-   
-    const tokencookie = cookies.split(';').find((str)=> str.startsWith('token='))
-    if (tokencookie) {
-     
-      const token = tokencookie.split('=')[1];
-      if (token) {
-        jwt.verify(token, jwtkey, {}, (err, data) => {
-          if (err) {
-            console.log('no') 
-            throw err
-          }
-          const {userId, user} = data;
-          connection.userId =  userId;
-          connection.user = user;
-        })
-      }
-    }
-   
-   
+ const cookies = req.headers.cookie;
+ if (cookies) {
+  
+   const tokencookie = cookies.split(';').find((str)=> str.startsWith('token='))
+   if (tokencookie) {
+    
+     const token = tokencookie.split('=')[1];
+     if (token) {
+       jwt.verify(token, jwtkey, {}, (err, data) => {
+         if (err) {
+           console.log('no') 
+           throw err
+         }
+         const {userId, user} = data;
+         connection.userId =  userId;
+         connection.user = user;
+        
+       })
+     }
+   }
+  
+  
+ }
+ 
+  function notifyAboutOnlinePeople() {
+    [...wss.clients].forEach(client => {
+      client.send(JSON.stringify({
+        online: [...wss.clients].map(c => ({userId:c.userId,user:c.user})),
+      }));
+    });
   }
- [...wss.clients].forEach(client => {
-  client.send(JSON.stringify( {online : [...wss.clients].map((client)=>{
-    return (
-      {
-        userId: client.userId,
-        user: client.user
-      }
-    )
-  })}))
- })
+  notifyAboutOnlinePeople();
+  
+
+ 
   
 })
