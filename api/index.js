@@ -128,8 +128,23 @@ wss.on('connection', (connection, req) => {
     });
   }
   notifyAboutOnlinePeople();
+
+  connection.on('message', (message) => {
+    console.log("received")
+    const received = JSON.parse(message.toString())
+    const {recipient, text} = received.message;
+    if (recipient && text) {
+      [...wss.clients]
+        .filter( c => c.userId === recipient)
+        .forEach (c => c.send(JSON.stringify(
+          {message:{author: connection.user, text:text}}
+        )))
+    }
+  })
   
 
  
   
 })
+
+
