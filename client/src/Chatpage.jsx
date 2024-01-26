@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react"
 import Pfp from "./Pfp"
 import { UserContext } from "./assets/Usercontext";
+import {uniqBy} from "lodash"
 export default function Chatpage () {
     const [onUser, setonUser] = useState({})
     const [receiver, setReceiver] = useState()
@@ -26,8 +27,11 @@ export default function Chatpage () {
        }
        else if ('message' in messagedata) {
         console.log(messagedata)
+            const message = messagedata.message;
             setChat( (prev) => {
-               return( [...prev, {author: messagedata.message.author, text: messagedata.message.text}])
+                console.log(prev)
+               return( [...prev, {author: message.author, text: message.text, id: message.id}])
+              
             })
        }
     }
@@ -40,9 +44,7 @@ export default function Chatpage () {
             }
         }))
        
-        setChat((prev) => {
-            return ([...prev, { author: "Me",text:Text}])
-        })
+       
         console.log(chat);
         seText("");
        
@@ -54,7 +56,7 @@ export default function Chatpage () {
         ws.addEventListener('message', handlemessage)
     }, [])
      
-
+    const uniqueMessages = uniqBy(chat, 'id');
     return (
     <div className="flex h-screen w-screen">
         <div  className="bg-white w-1/3  ">
@@ -71,7 +73,11 @@ export default function Chatpage () {
                  {Object.keys(onUser).map((userId) => {
                     return <div  
                          onClick = {
-                        ()=> { setReceiver(userId)} }
+                        ()=> { 
+                            setReceiver(userId)
+                            console.log(userId)
+                         }
+                        }
                         key = {userId} className= {` p-1 flex items-center gap-2 ${receiver == userId? 'bg-blue-200': 'bg-white'} `} >
                         {userId ==  receiver && (<div  className="bg-purple-900 h-10 w-1 rounded-lg"></div>)}
                         <Pfp name = {onUser[userId]} 
@@ -86,8 +92,8 @@ export default function Chatpage () {
         
         <div className="bg-blue-300 w-2/3 p-2 flex flex-col">
            {!!receiver &&  <div className="flex-grow">
-               { chat.map( (c) => {
-                    return (<div> {`${c.author}: ${c.text}`}</div>)
+               { uniqueMessages.map( (c) => {
+                    return (<div className=  {"rounded-lg p-1 m-2 w-fit" +  ` ${c.author === id ? 'bg-blue-500 mr-auto': 'bg-green-500 ml-auto'} ` } > { `${c.author === id ?  'Me':onUser[c.author] }: ${c.text}`} </div>)
                 })
                  }
             
