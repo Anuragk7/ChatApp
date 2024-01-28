@@ -1,7 +1,8 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import Pfp from "./Pfp"
 import { UserContext } from "./assets/Usercontext";
 import {uniqBy} from "lodash"
+import axios from "axios"
 export default function Chatpage () {
     const [onUser, setonUser] = useState({})
     const [receiver, setReceiver] = useState()
@@ -9,6 +10,9 @@ export default function Chatpage () {
     const [Text, seText] = useState("")
     const [websocket, setwebsocket] = useState(null)
     const [chat, setChat] = useState([])
+    const msgref = useRef()
+
+    
     function showOnlineUser(users) {
         const onlineUser = {}
         users.forEach((user => {
@@ -21,20 +25,30 @@ export default function Chatpage () {
     }
     function handlemessage (e) {
        const messagedata = JSON.parse(e.data);
-       console.log(messagedata)
+      
        if ('online' in messagedata ){
         showOnlineUser(messagedata.online);
+       
        }
        else if ('message' in messagedata) {
-        console.log(messagedata)
+       
             const message = messagedata.message;
             setChat( (prev) => {
-                console.log(prev)
-               return( [...prev, {author: message.author, text: message.text, id: message.id}])
+             
+               return( [...prev, {sender:message.sender, receiver:message.receiver, text: message.text, _id: message._id, }])
               
             })
+          
        }
     }
+    useEffect( ()=> {
+        if (chat){
+            const lastmsg = msgref.current
+            if (lastmsg)
+            lastmsg.scrollIntoView({behavior:'smooth'})
+        }
+       
+    }, [chat])
     function sendMessage (e) {
         e.preventDefault();
         websocket.send(JSON.stringify({
@@ -48,21 +62,37 @@ export default function Chatpage () {
         console.log(chat);
         seText("");
        
+       
     }
-   
-    useEffect(() => {
+    const connecToWs = () => {
         const ws = new WebSocket('ws://localhost:4040')
         setwebsocket(ws)
-        ws.addEventListener('message', handlemessage)
-    }, [])
-     
-    const uniqueMessages = uniqBy(chat, 'id');
+        ws.addEventListener('message', handlemessage);
+        ws.addEventListener('close', connecToWs)
+    }
+    useEffect(connecToWs, [])
+    useEffect(()=> {
+        if (receiver) {
+             axios.get('/messages/'+receiver).then((res)=>{
+                const {data} = res
+                if (data) {
+                   setChat(data);
+                }
+                
+               
+                console.log("messages",data)
+            });
+           
+        }
+       
+    }, [receiver])
+    const uniqueMessages = uniqBy(chat, '_id');
     return (
     <div className="flex h-screen w-screen">
         <div  className="bg-white w-1/3  ">
             
            <div  className="bg-white flex-grow ">
-             <div className=" text-blue-700 flex gap-2 p-2 justify-center">
+             <div className=" text-blue-700 flex gap-2 p-2 justify-center h-full">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
                 <path fillRule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 0 1-3.476.383.39.39 0 0 0-.297.17l-2.755 4.133a.75.75 0 0 1-1.248 0l-2.755-4.133a.39.39 0 0 0-.297-.17 48.9 48.9 0 0 1-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97ZM6.75 8.25a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H7.5Z" clipRule="evenodd" />
             </svg>
@@ -70,6 +100,7 @@ export default function Chatpage () {
                 <b>ChatApp </b>
                 
              </div>
+               
                  {Object.keys(onUser).map((userId) => {
                     return <div  
                          onClick = {
@@ -91,11 +122,14 @@ export default function Chatpage () {
         </div>
         
         <div className="bg-blue-300 w-2/3 p-2 flex flex-col">
-           {!!receiver &&  <div className="flex-grow">
+           {!!receiver &&  <div className="flex-grow no-scrollbar overflow-y-scroll">
                { uniqueMessages.map( (c) => {
-                    return (<div className=  {"rounded-lg p-1 m-2 w-fit" +  ` ${c.author === id ? 'bg-blue-500 mr-auto': 'bg-green-500 ml-auto'} ` } > { `${c.author === id ?  'Me':onUser[c.author] }: ${c.text}`} </div>)
+                    console.log(id, c.sender)
+                    return (<div className=  {"rounded-lg p-1 m-2 w-fit" +  ` ${c.sender === id ? 'bg-blue-500 mr-auto': 'bg-green-500 ml-auto'} ` } > { `${c.sender === id ?  'Me':onUser[c.sender] }: ${c.text}`} </div>)
                 })
-                 }
+                }
+                <div ref = {msgref}> </div>
+              
             
             </div>
             }

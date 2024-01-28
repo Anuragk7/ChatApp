@@ -7,13 +7,34 @@ const user = require('./api_models/User');
 const cookieparser = require('cookie-parser')
 const bcrypt = require('bcryptjs')
 const ws = require('ws')
+const message = require('./api_models/message')
+  
 
-
+const tokenToUser = (req) => {
+  
+  return new Promise((resolve, reject) => {
+    const token = req.cookies?.token;
+    if (token) {
+      console.log('token')
+      jwt.verify(token,jwtkey, {}, (err,data)=> {
+        if (err) throw err;
+        resolve(data);
+      })
+    }
+    else {
+      reject('no')
+      console.log('no token')
+       
+    }
+  });
+  
+}
 dotenv.config() 
 mongoose.connect(process.env.MONGO_URL)
 const app = express();
 app.use(express.json());
 app.use(cookieparser());
+
 const bcryptSalt = bcrypt.genSaltSync(10)
 app.use(cors({
     credentials: true,
@@ -83,10 +104,25 @@ app.post('/signup', async(req,res) => {
       }) ; }
       catch(err) {
         if (err) throw err;
-        res.status(500).json('eror');
+        res.status(500).json('error');
       }
     
   });
+
+  app.get('/messages/:userId', async (req,res) => {
+    const {userId} = req.params;
+    const data =  await tokenToUser(req);
+   
+    const receiver = data.userId;
+    console.log(userId)
+    const messages = await message.find({
+      sender:{$in:[userId,receiver]},
+      receiver:{$in:[userId,receiver]},
+    }).sort({createdAt: 1});
+  
+    res.json(messages);
+
+})
 
 
 const server = app.listen(4040, ()=> {
@@ -112,6 +148,7 @@ wss.on('connection', (connection, req) => {
          const {userId, user} = data;
          connection.userId =  userId;
          connection.user = user;
+       
         
        })
      }
@@ -123,22 +160,34 @@ wss.on('connection', (connection, req) => {
   function notifyAboutOnlinePeople() {
     [...wss.clients].forEach(client => {
       client.send(JSON.stringify({
-        online: [...wss.clients].map(c => ({userId:c.userId,user:c.user})),
+        online: [...wss.clients].map(c => {
+         
+          return {userId:c.userId,user:c.user}}
+          ),
       }));
+      
     });
   }
   notifyAboutOnlinePeople();
 
-  connection.on('message', (message) => {
+  connection.on('message', async (messageData) => {
     console.log("received")
-    const received = JSON.parse(message.toString())
+    const received = JSON.parse(messageData.toString())
     const {recipient, text} = received.message;
+    console.log( connection.userId, recipient, text)
+    const mongomessage = await message.create({
+      sender: connection.userId,
+      receiver: recipient,
+      text: text
+    })
+    
     if (recipient && text) {
       [...wss.clients]
-        .filter( c => c.userId === recipient)
+        .filter( c => c.userId === recipient || c.userId === connection.userId)
         .forEach (c => c.send(JSON.stringify(
-          {message:{author: connection.user, text:text}}
+          {message:{sender: connection.userId, receiver: connection.userId, text:text, _id: mongomessage._id}}
         )))
+        
     }
   })
   
@@ -146,5 +195,3 @@ wss.on('connection', (connection, req) => {
  
   
 })
-
-
