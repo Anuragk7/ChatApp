@@ -11,6 +11,7 @@ export default function Chatpage () {
     const [websocket, setwebsocket] = useState(null)
     const [chat, setChat] = useState([])
     const msgref = useRef()
+    const [offUser, setoffUser] = useState({})
 
     
     function showOnlineUser(users) {
@@ -47,8 +48,26 @@ export default function Chatpage () {
             if (lastmsg)
             lastmsg.scrollIntoView({behavior:'smooth'})
         }
-       
+
     }, [chat])
+
+    useEffect(()=> {
+        axios.get('/people').then( res => {
+            console.log('hello')
+            const ppl = res.data
+                .filter(p => p._id!==id && onUser[p._id] === undefined )
+                
+                if (ppl) {
+                setoffUser( (prev) => {
+                    ppl.forEach((user => {
+                        prev[user._id] = user.username
+                    }))
+                    delete prev[id]
+                    return prev
+                })
+                }
+        })
+    },[])
     function sendMessage (e) {
         e.preventDefault();
         websocket.send(JSON.stringify({
@@ -88,8 +107,8 @@ export default function Chatpage () {
     }, [receiver])
     const uniqueMessages = uniqBy(chat, '_id');
     return (
-    <div className="flex h-screen w-screen">
-        <div  className="bg-white w-1/3  ">
+    <div className="flex h-screen w-screen ">
+        <div  className="bg-white w-1/3 overflow-y-scroll h-screen  no-scrollbar">
             
            <div  className="bg-white flex-grow ">
              <div className=" text-blue-700 flex gap-2 p-2 justify-center h-full">
@@ -100,7 +119,9 @@ export default function Chatpage () {
                 <b>ChatApp </b>
                 
              </div>
-               
+               <div >
+
+              
                  {Object.keys(onUser).map((userId) => {
                     return <div  
                          onClick = {
@@ -112,12 +133,30 @@ export default function Chatpage () {
                         key = {userId} className= {` p-1 flex items-center gap-2 ${receiver == userId? 'bg-blue-200': 'bg-white'} `} >
                         {userId ==  receiver && (<div  className="bg-purple-900 h-10 w-1 rounded-lg"></div>)}
                         <Pfp name = {onUser[userId]} 
-                       
+                             online = 'true'
                         />
                         <span>{onUser[userId]}</span> 
                        
                         </div>
                  })}
+                 {Object.keys(offUser).map((userId) => {
+                    return <div  
+                         onClick = {
+                        ()=> { 
+                            setReceiver(userId)
+                            console.log(userId)
+                         }
+                        }
+                        key = {userId} className= {` p-1 flex items-center gap-2 ${receiver == userId? 'bg-blue-200': 'bg-white'} `} >
+                        {userId ==  receiver && (<div  className="bg-purple-900 h-10 w-1 rounded-lg"></div>)}
+                        <Pfp name = {offUser[userId] } 
+                               
+                        />
+                        <span>{offUser[userId]}</span> 
+                       
+                        </div>
+                 })}
+                </div>
            </div>
         </div>
         

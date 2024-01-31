@@ -46,8 +46,15 @@ const jwtkey = process.env.JWT_KEY;
 console.log(jwtkey)
 app.options('/signup', cors());
 
+
+
 app.get('/test', (req,res)=> {
     res.send('test ok');
+});
+
+app.get('/people', async (req,res) => {
+  const users =  await user.find({}, {'_id':1, 'username':1});
+  res.json(users);
 });
 app.post('/login', async (req,res) => {
   console.log('login called')
