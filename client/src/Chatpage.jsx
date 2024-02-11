@@ -106,7 +106,7 @@ export default function Chatpage () {
         else {
             websocket.send(JSON.stringify({
                 file: {
-                    
+
                 }
             }))
         }
@@ -214,8 +214,8 @@ export default function Chatpage () {
             
             {!! receiver &&
             
-            <form onSubmit={sendMessage}>
-            <div className="flex gap-2  ">
+            <form onSubmit={sendMessage} className="flex gap-2  ">
+            
                 <input type = "text"
                     onChange={(e) => {
                         e.preventDefault()
@@ -240,7 +240,7 @@ export default function Chatpage () {
                
                
                 
-            </div>
+            
             </form>
 
             ||
