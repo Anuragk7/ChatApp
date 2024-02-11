@@ -6,7 +6,7 @@ import Chatpage from "./Chatpage";
 export default function Routes () {
     
     const {curruser, id} = useContext(UserContext)
-     if (curruser){
+     if (id){
         return (<Chatpage/>)
      }
     

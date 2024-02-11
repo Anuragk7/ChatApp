@@ -1,6 +1,6 @@
 export default function Pfp (props) {
     if (props.name) {
-        const  bgColors = ['bg-yellow-200' , 'bg-green-200' , 'bg-red-200' , 'bg-pink-200' , 'bg-violet-200']
+        const  bgColors = ['bg-gradient-to-r from-amber-200 to-yellow-400','bg-gradient-to-r from-lime-400 to-lime-500' , 'bg-gradient-to-r from-lime-400 to-lime-500' , 'bg-red-200' , 'bg-pink-200' , 'bg-violet-200', 'bg-gradient-to-r from-pink-500 to-rose-500', 'bg-gradient-to-r from-fuchsia-500 to-cyan-500']
         const ind  = props.name[0].charCodeAt(0)
         const status = props.online === 'true' ?'bg-green-400 ': 'bg-gray-400 '
         return (
@@ -17,6 +17,6 @@ export default function Pfp (props) {
         )
         
     }
-    return <div>nouser</div> 
+    
    
 }

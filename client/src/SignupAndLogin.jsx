@@ -16,30 +16,32 @@ export default function SignupAndLogin () {
          const {data} = await axios.post(url, {username:user, password:password})
          console.log('hello')
          setcurruser(user)
-        
+         setid(user)
        
           setolduser(true)
 
 
       }
-    return (<div className="bg-cyan-50 h-screen flex items-center">
-
-        <form className="w-64 mx-auto mb-10  " onSubmit={handlesubmit}  >
-
+    return (<div className="bg-gradient-to-r from-blue-200 to-cyan-200 h-screen flex items-center ">
+      
+        <form className="w-64 mx-auto mb-10 " onSubmit={handlesubmit}  >
+            <h1 className= " text-white m-5 text-center font-bold text-xl"> Welcome To MERN Chat </h1>
             <input type = "text" placeholder= {user} 
-            className="block w-full rounded-sm border p-2 mb-2" 
+            className="block w-full  border p-2 mb-2 rounded-xl font-small" 
             onChange={e => setuser(e.target.value)}/>
 
 
             <input type = "password" placeholder={password} 
-            className="block w-full rounded-sm border p-2 mb-2"
+            className=" block w-full border p-2 mb-2 rounded-xl"
              onChange={e => setpassword(e.target.value)}/>
-            <button className="rounded-sm bg-cyan-500 text-white w-full p-2" >{olduser? "Login": "Signup"}</button>
+            <button type =  'submit' className="font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-white w-full p-2 rounded-lg" >{olduser? "Login": "Signup"}</button>
             <div className="text-center mt-2">
             
-            <button onClick={()=> {setolduser( (prev) => {return !prev })}}> {olduser?"Don't have an account? Signup":"Already a member? Login Here"}</button>
+            <button type = 'button'  className = 'text-black' onClick={()=> {setolduser( (prev) => {return !prev })}}> {olduser?"Don't have an account? Signup":"Already a member? Login Here"}</button>
             </div>
-        </form>
         
+           
+        </form>
+       
     </div>);
 }

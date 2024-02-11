@@ -56,6 +56,10 @@ app.get('/people', async (req,res) => {
   const users =  await user.find({}, {'_id':1, 'username':1});
   res.json(users);
 });
+app.post('/logout', (req,res) => {
+    res.cookie('token', '', {sameSite: 'none', secure: true}).json('okay')
+    console.log('cookie deleted')
+})
 app.post('/login', async (req,res) => {
   console.log('login called')
   const {username, password} =  req.body;
