@@ -7,7 +7,7 @@ const user = require('./api_models/User');
 const cookieparser = require('cookie-parser')
 const bcrypt = require('bcryptjs')
 const ws = require('ws')
-const message = require('./api_models/message')
+const message = require('api_models/message')
   
 
 const tokenToUser = (req) => {
