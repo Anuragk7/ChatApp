@@ -39,7 +39,7 @@ app.use(cookieparser());
 const bcryptSalt = bcrypt.genSaltSync(10)
 app.use(cors({
     credentials: true,
-    origin:  '*'
+    origin:  'https://chat-app-frontend-nine-alpha.vercel.app/'
 }))  
 
 
