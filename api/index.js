@@ -8,7 +8,8 @@ const cookieparser = require('cookie-parser')
 const bcrypt = require('bcryptjs')
 const ws = require('ws')
 const message = require('./api_models/Message')
-  
+dotenv.config() 
+const jwtkey = process.env.JWT_KEY;
 
 const tokenToUser = (req) => {
   
@@ -29,7 +30,7 @@ const tokenToUser = (req) => {
   });
   
 }
-dotenv.config() 
+
 mongoose.connect(process.env.MONGO_URL)
 const app = express();
 app.use(express.json());
@@ -42,7 +43,7 @@ app.use(cors({
 }))  
 
 
-const jwtkey = process.env.JWT_KEY;
+
 console.log(jwtkey)
 app.options('/signup', cors());
 
