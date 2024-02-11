@@ -30,7 +30,7 @@ const tokenToUser = (req) => {
   });
   
 }
-
+console.log(process.env.MONGO_URL)
 mongoose.connect(process.env.MONGO_URL)
 const app = express();
 app.use(express.json());
