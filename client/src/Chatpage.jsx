@@ -114,7 +114,7 @@ export default function Chatpage () {
        
     }
     const connecToWs = () => {
-        const ws = new WebSocket('ws://https://chat-app-beta-five-23.vercel.app:4040')
+        const ws = new WebSocket('wss://https://chat-app-beta-five-23.vercel.app:4040')
         setwebsocket(ws)
         ws.addEventListener('message', handlemessage);
         ws.addEventListener('close', connecToWs)
