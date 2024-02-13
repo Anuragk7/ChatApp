@@ -88,8 +88,7 @@ export default function Chatpage () {
         })
     }, [onUser])
     function sendMessage (e) {
-        const file = ev.target?.files?.[0]
-        if (!file){
+        
             e.preventDefault();
             websocket.send(JSON.stringify({
                 message : {
@@ -102,14 +101,7 @@ export default function Chatpage () {
             console.log(chat);
             seText("");
            
-        }
-        else {
-            websocket.send(JSON.stringify({
-                file: {
-
-                }
-            }))
-        }
+        
        
        
     }
